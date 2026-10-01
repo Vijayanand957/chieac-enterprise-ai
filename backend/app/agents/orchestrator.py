@@ -4,6 +4,7 @@ agents (retrieval / SQL / forecasting / reporting), and synthesizes a final
 answer with a visible agent trace for transparency/debuggability -- a common
 production pattern for multi-agent systems.
 """
+
 from __future__ import annotations
 
 import json
@@ -37,7 +38,13 @@ def _classify(message: str) -> list[str]:
 async def handle_message(db: AsyncSession, message: str) -> dict:
     trace: list[dict] = []
     intents = _classify(message)
-    trace.append({"agent": "orchestrator", "action": "classify_intent", "summary": f"Routed to: {', '.join(intents)}"})
+    trace.append(
+        {
+            "agent": "orchestrator",
+            "action": "classify_intent",
+            "summary": f"Routed to: {', '.join(intents)}",
+        }
+    )
 
     findings: dict = {}
     sources: list[str] = []
@@ -46,25 +53,49 @@ async def handle_message(db: AsyncSession, message: str) -> dict:
         result = retrieval_agent.run(message)
         findings["retrieval"] = result["answer"]
         sources.extend(result["sources"])
-        trace.append({"agent": "retrieval", "action": "search_documents", "summary": f"Found {len(result['sources'])} source(s)"})
+        trace.append(
+            {
+                "agent": "retrieval",
+                "action": "search_documents",
+                "summary": f"Found {len(result['sources'])} source(s)",
+            }
+        )
 
     if "sql" in intents:
         result = await sql_agent.run(db, message)
         findings["analytics"] = result["answer"]
-        trace.append({"agent": "sql_analytics", "action": "query_metrics", "summary": f"Analyzed {result['row_count']} metric rows"})
+        trace.append(
+            {
+                "agent": "sql_analytics",
+                "action": "query_metrics",
+                "summary": f"Analyzed {result['row_count']} metric rows",
+            }
+        )
 
     if "forecast" in intents:
         metric_guess = _guess_metric_name(message)
         result = await forecasting_agent.run(db, metric_guess)
         findings["forecast"] = result["answer"]
-        trace.append({"agent": "forecasting", "action": "generate_forecast", "summary": f"Forecast for '{metric_guess}'"})
+        trace.append(
+            {
+                "agent": "forecasting",
+                "action": "generate_forecast",
+                "summary": f"Forecast for '{metric_guess}'",
+            }
+        )
 
     if "general" in intents and not findings:
         answer = complete(
             "You are a helpful enterprise operations assistant. Answer briefly and helpfully.",
             message,
         )
-        trace.append({"agent": "general", "action": "direct_answer", "summary": "Answered directly"})
+        trace.append(
+            {
+                "agent": "general",
+                "action": "direct_answer",
+                "summary": "Answered directly",
+            }
+        )
         return {"answer": answer, "trace": trace, "sources": []}
 
     # Synthesize a single coherent answer from whichever agents contributed
@@ -72,7 +103,13 @@ async def handle_message(db: AsyncSession, message: str) -> dict:
         final_answer = next(iter(findings.values()))
     else:
         final_answer = reporting_agent.summarize(findings)
-        trace.append({"agent": "reporting", "action": "synthesize", "summary": "Combined multi-agent findings into one answer"})
+        trace.append(
+            {
+                "agent": "reporting",
+                "action": "synthesize",
+                "summary": "Combined multi-agent findings into one answer",
+            }
+        )
 
     return {"answer": final_answer, "trace": trace, "sources": sources}
 

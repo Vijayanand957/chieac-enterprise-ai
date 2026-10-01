@@ -1,5 +1,6 @@
 """Minimal API key auth dependency. Replace with Azure AD / OAuth2 in
 production (see docs/ROADMAP.md, Phase 2)."""
+
 from fastapi import Header, HTTPException
 
 from app.config import get_settings

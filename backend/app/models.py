@@ -1,4 +1,5 @@
 """ORM models for structured operational data used by the SQL/analytics agent."""
+
 import uuid
 from datetime import datetime
 
@@ -29,7 +30,9 @@ class Conversation(Base):
     title: Mapped[str] = mapped_column(String, default="New conversation")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
-    messages: Mapped[list["Message"]] = relationship(back_populates="conversation", cascade="all, delete-orphan")
+    messages: Mapped[list["Message"]] = relationship(
+        back_populates="conversation", cascade="all, delete-orphan"
+    )
 
 
 class Message(Base):
@@ -39,7 +42,9 @@ class Message(Base):
     conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"))
     role: Mapped[str] = mapped_column(String)  # user | assistant | agent:<name>
     content: Mapped[str] = mapped_column(Text)
-    agent_trace: Mapped[str] = mapped_column(Text, default="[]")  # JSON list of agent steps
+    agent_trace: Mapped[str] = mapped_column(
+        Text, default="[]"
+    )  # JSON list of agent steps
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
@@ -53,7 +58,9 @@ class OperationalMetric(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
     metric_name: Mapped[str] = mapped_column(String, index=True)
-    dimension: Mapped[str] = mapped_column(String, default="overall")  # e.g. region, product
+    dimension: Mapped[str] = mapped_column(
+        String, default="overall"
+    )  # e.g. region, product
     value: Mapped[float] = mapped_column(Float)
     recorded_at: Mapped[datetime] = mapped_column(DateTime, index=True)
 

@@ -11,7 +11,9 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 @router.post("", response_model=ChatResponse)
-async def chat(payload: ChatRequest, db: AsyncSession = Depends(get_db)) -> ChatResponse:
+async def chat(
+    payload: ChatRequest, db: AsyncSession = Depends(get_db)
+) -> ChatResponse:
     conversation = None
     if payload.conversation_id:
         conversation = await db.get(Conversation, payload.conversation_id)
@@ -20,7 +22,9 @@ async def chat(payload: ChatRequest, db: AsyncSession = Depends(get_db)) -> Chat
         db.add(conversation)
         await db.flush()
 
-    db.add(Message(conversation_id=conversation.id, role="user", content=payload.message))
+    db.add(
+        Message(conversation_id=conversation.id, role="user", content=payload.message)
+    )
 
     result = await handle_message(db, payload.message)
 
@@ -44,6 +48,12 @@ async def chat(payload: ChatRequest, db: AsyncSession = Depends(get_db)) -> Chat
 
 @router.get("/{conversation_id}/history")
 async def history(conversation_id: str, db: AsyncSession = Depends(get_db)):
-    stmt = select(Message).where(Message.conversation_id == conversation_id).order_by(Message.created_at)
+    stmt = (
+        select(Message)
+        .where(Message.conversation_id == conversation_id)
+        .order_by(Message.created_at)
+    )
     rows = (await db.execute(stmt)).scalars().all()
-    return [{"role": m.role, "content": m.content, "created_at": m.created_at} for m in rows]
+    return [
+        {"role": m.role, "content": m.content, "created_at": m.created_at} for m in rows
+    ]

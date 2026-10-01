@@ -1,5 +1,6 @@
 """Forecasting agent: wraps the ML forecasting layer and narrates results in
 business language (risk direction, magnitude, confidence)."""
+
 from __future__ import annotations
 
 import pandas as pd

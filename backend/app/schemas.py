@@ -1,4 +1,5 @@
 """Pydantic v2 schemas for API request/response bodies."""
+
 from pydantic import BaseModel, Field
 
 
@@ -27,7 +28,9 @@ class DocumentUploadResponse(BaseModel):
 
 
 class ForecastRequest(BaseModel):
-    target: str = Field(..., description="Column name to forecast, e.g. 'churn' or 'incidents'")
+    target: str = Field(
+        ..., description="Column name to forecast, e.g. 'churn' or 'incidents'"
+    )
     horizon: int = Field(default=30, ge=1, le=365)
 
 

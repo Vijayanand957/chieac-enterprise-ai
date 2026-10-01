@@ -20,10 +20,17 @@ async def list_metrics(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/forecast", response_model=ForecastResponse)
-async def forecast(payload: ForecastRequest, db: AsyncSession = Depends(get_db)) -> ForecastResponse:
+async def forecast(
+    payload: ForecastRequest, db: AsyncSession = Depends(get_db)
+) -> ForecastResponse:
     result = await forecasting_agent.run(db, payload.target, horizon=payload.horizon)
     points = [
-        ForecastPoint(period=f"t+{p['step']}", predicted=p["predicted"], lower=p["lower"], upper=p["upper"])
+        ForecastPoint(
+            period=f"t+{p['step']}",
+            predicted=p["predicted"],
+            lower=p["lower"],
+            upper=p["upper"],
+        )
         for p in result["forecast"]
     ]
     return ForecastResponse(
@@ -35,13 +42,21 @@ async def forecast(payload: ForecastRequest, db: AsyncSession = Depends(get_db))
 
 
 @router.post("/reports/executive-summary", response_model=ExecutiveSummaryResponse)
-async def executive_summary(payload: ExecutiveSummaryRequest, db: AsyncSession = Depends(get_db)) -> ExecutiveSummaryResponse:
+async def executive_summary(
+    payload: ExecutiveSummaryRequest, db: AsyncSession = Depends(get_db)
+) -> ExecutiveSummaryResponse:
     metrics = await sql_agent.available_metrics(db)
-    findings = {"period": payload.period, "focus_areas": payload.focus_areas, "available_metrics": metrics}
+    findings = {
+        "period": payload.period,
+        "focus_areas": payload.focus_areas,
+        "available_metrics": metrics,
+    }
 
-    risks = [f"Insufficient recent data for: {m}" for m in payload.focus_areas if m not in metrics] or [
-        "No critical data gaps identified."
-    ]
+    risks = [
+        f"Insufficient recent data for: {m}"
+        for m in payload.focus_areas
+        if m not in metrics
+    ] or ["No critical data gaps identified."]
     summary_text = reporting_agent.summarize(findings)
     recommendations = reporting_agent.recommend(findings, risks)
 

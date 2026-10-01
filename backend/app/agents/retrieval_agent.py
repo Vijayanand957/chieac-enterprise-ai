@@ -1,5 +1,6 @@
 """Retrieval agent: answers questions grounded in uploaded organizational
 documents using RAG over the vector store."""
+
 from app.agents.llm_client import complete
 from app.rag.vector_store import similarity_search
 

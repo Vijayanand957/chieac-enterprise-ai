@@ -1,6 +1,7 @@
 """Thin wrapper around the Anthropic API shared by all agents. Centralizing
 this makes it a one-line swap to Azure OpenAI or Bedrock in a different
 deployment target."""
+
 from __future__ import annotations
 
 from anthropic import Anthropic

@@ -1,5 +1,6 @@
 """Parse uploaded documents (PDF, DOCX, TXT/MD, CSV headers) into overlapping
 text chunks suitable for embedding."""
+
 from __future__ import annotations
 
 import io

@@ -3,6 +3,7 @@
 a lightweight time-series forecaster for the /forecast endpoint's charting
 use case (confidence-banded future periods).
 """
+
 from __future__ import annotations
 
 import json
@@ -35,21 +36,30 @@ def train_tabular_model(df: pd.DataFrame, target: str, model_name: str) -> Train
     X = df.drop(columns=[target]).select_dtypes(include=[np.number])
     feature_names = list(X.columns)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
 
     is_classification = y.nunique() <= 2
     if is_classification:
         model = xgb.XGBClassifier(
-            n_estimators=300, max_depth=4, learning_rate=0.05,
-            subsample=0.8, colsample_bytree=0.8, eval_metric="auc",
+            n_estimators=300,
+            max_depth=4,
+            learning_rate=0.05,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            eval_metric="auc",
         )
         model.fit(X_train, y_train)
         preds = model.predict_proba(X_test)[:, 1]
         metrics = {"auc": float(roc_auc_score(y_test, preds))}
     else:
         model = xgb.XGBRegressor(
-            n_estimators=300, max_depth=4, learning_rate=0.05,
-            subsample=0.8, colsample_bytree=0.8,
+            n_estimators=300,
+            max_depth=4,
+            learning_rate=0.05,
+            subsample=0.8,
+            colsample_bytree=0.8,
         )
         model.fit(X_train, y_train)
         preds = model.predict(X_test)
@@ -58,9 +68,13 @@ def train_tabular_model(df: pd.DataFrame, target: str, model_name: str) -> Train
     model_path = os.path.join(settings.model_registry_dir, f"{model_name}.json")
     model.save_model(model_path)
     with open(model_path + ".meta.json", "w") as f:
-        json.dump({"feature_names": feature_names, "is_classification": is_classification}, f)
+        json.dump(
+            {"feature_names": feature_names, "is_classification": is_classification}, f
+        )
 
-    return TrainResult(model_path=model_path, metrics=metrics, feature_names=feature_names)
+    return TrainResult(
+        model_path=model_path, metrics=metrics, feature_names=feature_names
+    )
 
 
 def load_model(model_name: str):
@@ -112,11 +126,13 @@ def time_series_forecast(history: pd.Series, horizon: int = 30) -> list[dict]:
     out = []
     for h in range(1, horizon + 1):
         point = level + h * trend
-        band = 1.96 * resid_std * (h ** 0.5)
-        out.append({
-            "step": h,
-            "predicted": round(max(point, 0), 2),
-            "lower": round(max(point - band, 0), 2),
-            "upper": round(max(point + band, 0), 2),
-        })
+        band = 1.96 * resid_std * (h**0.5)
+        out.append(
+            {
+                "step": h,
+                "predicted": round(max(point, 0), 2),
+                "lower": round(max(point - band, 0), 2),
+                "upper": round(max(point + band, 0), 2),
+            }
+        )
     return out

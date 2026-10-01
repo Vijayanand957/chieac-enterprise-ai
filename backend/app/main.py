@@ -1,5 +1,6 @@
 """FastAPI application entrypoint: wires up middleware, routers, and startup
 tasks for the Enterprise AI Operations Assistant."""
+
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,4 +39,8 @@ async def on_startup() -> None:
 
 @app.get("/health")
 async def health() -> dict:
-    return {"status": "ok", "service": settings.app_name, "environment": settings.environment}
+    return {
+        "status": "ok",
+        "service": settings.app_name,
+        "environment": settings.environment,
+    }

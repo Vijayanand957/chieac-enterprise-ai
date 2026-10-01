@@ -15,9 +15,13 @@ MAX_SIZE_BYTES = 20 * 1024 * 1024  # 20 MB
 
 
 @router.post("/upload", response_model=DocumentUploadResponse)
-async def upload_document(file: UploadFile, db: AsyncSession = Depends(get_db)) -> DocumentUploadResponse:
+async def upload_document(
+    file: UploadFile, db: AsyncSession = Depends(get_db)
+) -> DocumentUploadResponse:
     if not file.filename.lower().endswith(ALLOWED_EXTENSIONS):
-        raise HTTPException(400, f"Unsupported file type. Allowed: {ALLOWED_EXTENSIONS}")
+        raise HTTPException(
+            400, f"Unsupported file type. Allowed: {ALLOWED_EXTENSIONS}"
+        )
 
     raw = await file.read()
     if len(raw) > MAX_SIZE_BYTES:
@@ -35,13 +39,23 @@ async def upload_document(file: UploadFile, db: AsyncSession = Depends(get_db)) 
     add_chunks(doc.id, file.filename, chunks)
     await db.commit()
 
-    return DocumentUploadResponse(id=doc.id, filename=doc.filename, chunk_count=doc.chunk_count)
+    return DocumentUploadResponse(
+        id=doc.id, filename=doc.filename, chunk_count=doc.chunk_count
+    )
 
 
 @router.get("")
 async def list_documents(db: AsyncSession = Depends(get_db)):
     rows = (await db.execute(select(Document))).scalars().all()
-    return [{"id": d.id, "filename": d.filename, "chunk_count": d.chunk_count, "uploaded_at": d.uploaded_at} for d in rows]
+    return [
+        {
+            "id": d.id,
+            "filename": d.filename,
+            "chunk_count": d.chunk_count,
+            "uploaded_at": d.uploaded_at,
+        }
+        for d in rows
+    ]
 
 
 @router.delete("/{doc_id}")

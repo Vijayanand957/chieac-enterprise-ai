@@ -2,6 +2,7 @@
 embeddings. Swappable for pgvector/Azure AI Search in production by implementing
 the same interface (add_chunks / similarity_search).
 """
+
 from __future__ import annotations
 
 import chromadb
@@ -27,7 +28,10 @@ def add_chunks(doc_id: str, filename: str, chunks: list[str]) -> int:
     if not chunks:
         return 0
     ids = [f"{doc_id}::{i}" for i in range(len(chunks))]
-    metadatas = [{"doc_id": doc_id, "filename": filename, "chunk_index": i} for i in range(len(chunks))]
+    metadatas = [
+        {"doc_id": doc_id, "filename": filename, "chunk_index": i}
+        for i in range(len(chunks))
+    ]
     _collection.add(ids=ids, documents=chunks, metadatas=metadatas)
     return len(chunks)
 
@@ -36,7 +40,9 @@ def similarity_search(query: str, k: int = 5) -> list[dict]:
     """Return top-k chunks with their source filename and similarity distance."""
     if _collection.count() == 0:
         return []
-    results = _collection.query(query_texts=[query], n_results=min(k, _collection.count()))
+    results = _collection.query(
+        query_texts=[query], n_results=min(k, _collection.count())
+    )
     hits = []
     for doc, meta, dist in zip(
         results["documents"][0], results["metadatas"][0], results["distances"][0]

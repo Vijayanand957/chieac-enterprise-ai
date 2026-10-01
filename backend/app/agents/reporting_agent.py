@@ -1,5 +1,6 @@
 """Reporting agent: synthesizes outputs from other agents into an executive
 summary. Recommendation agent: turns findings into prioritized action items."""
+
 from __future__ import annotations
 
 import json
